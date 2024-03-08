@@ -1,8 +1,23 @@
-const express = require("express");
-const mysql = require("mysql");
+const express = require('express');
+const mysql = require('mysql');
+const bodyParser = require('body-parser');
+
 
 const app = express();
-app.use(express.json());
+const port = 3000;
+
+// mysql接続情報
+const connection = mysql.createConnection({
+  host: 'localhost',
+  user: 'root',
+  password: 'root',
+  database: 'test'
+});
+
+
+// mysql接続
+
+
 
 app.get("/", (req, res) => res.send("Hello World"));
 
