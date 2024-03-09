@@ -6,6 +6,9 @@ const bodyParser = require('body-parser');
 const app = express();
 const port = 3000;
 
+// 静的ファイルの配信設定
+app.use(express.static(path.join(__dirname, 'public')));
+
 // mysql接続情報
 const connection = mysql.createConnection({
   host: 'localhost',
