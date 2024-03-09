@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path'); // path モジュールを追加
 const mysql = require('mysql');
 const bodyParser = require('body-parser');
 
