@@ -32,6 +32,21 @@ connection.connect(err => {
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
+
+// すべての投稿を取得するエンドポイント
+app.get('/posts', (req, res) => {
+  const query = 'SELECT * FROM posts';
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching posts: ' + err);
+      res.status(500).send('Error fetching posts');
+      return;
+    }
+    res.json(results); // 取得した投稿データをJSON形式で送信する
+  });
+});
+
+
 // 新しい投稿を作成するエンドポイント
 app.post('/posts', (req, res) => {
   const {content} = req.body;
