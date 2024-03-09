@@ -35,7 +35,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 // 新しい投稿を作成するエンドポイント
 app.post('/posts', (req, res) => {
   const {content} = req.body;
-  const query = 'INSERT INTO posts (content VALUES (?)';
+  const query = 'INSERT INTO posts (content) VALUES (?)';
   connection.query(query, [content], (err, results) => {
     if(err){
       console.error('Error creating post: ' + err);
