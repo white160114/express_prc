@@ -1,3 +1,12 @@
+CREATE TABLE users(
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_name varchar(20) not null,
+    password varchar(256) not null,
+    mail varchar(256) not null
+);
+
+DROP TABLE IF EXISTS existing_posts; -- 既存のpostsテーブルがある場合は削除するか、別の名前に変更してください
+
 CREATE TABLE posts (
     id INT AUTO_INCREMENT PRIMARY KEY,
     content TEXT,
@@ -14,10 +23,3 @@ CREATE TABLE comments (
     FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
 );
 
-CREATE TABLE users(
-    user_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_name varchar(20) not null,
-    password varchar(256) not null,
-    mail varchar(256) not null,
-
-);

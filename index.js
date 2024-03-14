@@ -19,65 +19,62 @@ const connection = mysql.createConnection({
 });
 
 
-// mysql接続
-connection.connect(err => {
-  if(err){
-    console.error('database connection failed: ' + err.stack);
-    return;
-  }
-  console.log('Connected to database.');
+connection.connect((err) => {
+  if (err) throw err;
+  console.log('Connected to MySQL database');
 });
 
-// body parserの設定
+// リクエストボディを解析するためのミドルウェア
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
 
+// ログインエンドポイント
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+  const query = 'SELECT * FROM users WHERE user_name = ? AND password = ?';
 
-// すべての投稿を取得するエンドポイント
-app.get('/posts', (req, res) => {
-  const query = 'SELECT * FROM posts';
-  connection.query(query, (err, results) => {
-    if (err) {
-      console.error('Error fetching posts: ' + err);
-      res.status(500).send('Error fetching posts');
-      return;
+  connection.query(query, [username, password], (err, results) => {
+    if (err) throw err;
+
+    if (results.length > 0) {
+      res.json({ message: 'Login successful' });
+    } else {
+      res.status(401).json({ message: 'Login failed' });
     }
-    res.json(results); // 取得した投稿データをJSON形式で送信する
   });
 });
-
 
 // 新しい投稿を作成するエンドポイント
 app.post('/posts', (req, res) => {
-  const {content} = req.body;
+  const { content } = req.body;
   const query = 'INSERT INTO posts (content) VALUES (?)';
+
   connection.query(query, [content], (err, results) => {
-    if(err){
-      console.error('Error creating post: ' + err);
-      res.status(500).send('Error creating post');
-      return;
-    }
-    res.status(201).send('Post created successfully');
+    if (err) throw err;
+    res.json({ message: 'Post created successfully' });
   });
 });
 
-// 新しいコメントを作成するエンドポイント
-app.post('/posts/:postId/comments', (req, res) => {
-  const postId = req.params.postId;
-  const {content} = req.body;
-  const query = 'INSERT INTO comments (post_id, content) VALUES (?, ?)';
-  connection.query(query, [postId, content], (err,results) => {
-    if(err){
-      console.error('Error adding comment: ' + err);
-      res.status(500).send('Error adding comment');
-      return;
-    }
-    res.status(201).send('Comment added successfully');
+// 投稿を取得するエンドポイント
+app.get('/posts', (req, res) => {
+  const query = 'SELECT * FROM posts';
+
+  connection.query(query, (err, results) => {
+    if (err) throw err;
+    res.json(results);
   });
 });
 
+// 特定の投稿にコメントを追加するエンドポイント
+app.post('/comments', (req, res) => {
+  const { post_id, user_id, content } = req.body;
+  const query = 'INSERT INTO comments (post_id, user_id, content) VALUES (?, ?, ?)';
 
-// サーバーの起動
+  connection.query(query, [post_id, user_id, content], (err, results) => {
+    if (err) throw err;
+    res.json({ message: 'Comment added successfully' });
+  });
+});
+
 app.listen(port, () => {
-  console.log(`Server is listening on port ${port}`);
+  console.log(`Server is running on port ${port}`);
 });
