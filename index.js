@@ -2,10 +2,15 @@ const express = require('express');
 const path = require('path'); // path モジュールを追加
 const mysql = require('mysql');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 
 
 const app = express();
 const port = 3000;
+
+// CORSポリシーを設定
+app.use(cors());
+
 
 // 静的ファイルの配信設定
 app.use(express.static(path.join(__dirname, 'public')));
@@ -54,12 +59,15 @@ app.post('/posts', (req, res) => {
   });
 });
 
-// 投稿を取得するエンドポイント
-app.get('/posts', (req, res) => {
+app.get('/api/posts', (req, res) => {
   const query = 'SELECT * FROM posts';
 
   connection.query(query, (err, results) => {
-    if (err) throw err;
+    if (err) {
+      console.error('Error fetching posts:', error);
+      res.status(500).json({ message: 'Internal Server Error' });
+      return;
+    }
     res.json(results);
   });
 });

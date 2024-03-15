@@ -1,30 +1,31 @@
-
+'use client';
 import { useState, useEffect } from 'react';
 
 const IndexPage = () => {
+    // useState フックを使用して、コンポーネントの状態を管理します。
     const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
 
+    // ユーザーIDを取得する関数を定義します。
     const getUserId = async () => {
         try {
-            const response = await fetch('/getUserIdEndpoint'); // ユーザーIDを取得するエンドポイントに合わせて変更
+            const response = await fetch('/getUserIdEndpoint');
             if (!response.ok) {
                 throw new Error('Failed to get user ID');
             }
             const data = await response.json();
-            return data.userId; // 必要に応じて実際のデータ構造に合わせて変更
+            return data.userId;
         } catch (error) {
             console.error('Error getting user ID:', error);
             return null;
         }
     };
 
+    // ログインフォームの処理を行う関数です。
     const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const username = (document.getElementById('username') as HTMLInputElement).value;
         const password = (document.getElementById('password') as HTMLInputElement).value;
 
-        // サーバーサイドでのログイン検証処理を行う（省略）
-        // ログイン成功時に以下のようにする
         try {
             const response = await fetch('/login', {
                 method: 'POST',
@@ -41,7 +42,7 @@ const IndexPage = () => {
                     // ユーザーIDを取得した後の処理を行う
                 }
             } else {
-                alert('Login failed. Please try again.'); // ログイン失敗時の処理
+                alert('Login failed. Please try again.');
             }
         } catch (error) {
             console.error('Error logging in:', error);
@@ -49,22 +50,23 @@ const IndexPage = () => {
         }
     };
 
+    // 投稿を取得する関数を定義します。
     const fetchPosts = async () => {
         try {
-            const response = await fetch('/api/posts'); // データを取得するAPIエンドポイントに合わせて変更
+            const response = await fetch('http://localhost:3000/api/posts');
             if (!response.ok) {
                 throw new Error('Failed to fetch posts');
             }
             const posts = await response.json();
             const postsList = document.getElementById('posts-list');
             if (postsList) {
-                postsList.innerHTML = ''; // 既存の投稿をクリア
+                postsList.innerHTML = '';
                 posts.forEach((post: any) => {
                     const listItem = document.createElement('li');
                     listItem.textContent = post.content;
-                    listItem.dataset.postId = post.id; // 投稿のIDを保存する
+                    listItem.dataset.postId = post.id;
                     listItem.addEventListener('click', () => {
-                        selectPost(post.id); // 投稿がクリックされたらそのIDを選択する
+                        selectPost(post.id);
                     });
                     postsList.appendChild(listItem);
                 });
@@ -72,9 +74,9 @@ const IndexPage = () => {
         } catch (error) {
             console.error('Error fetching posts:', error);
         }
-
     };
 
+    // 投稿を選択する関数を定義します。
     const selectPost = (postId: number) => {
         setSelectedPostId(postId);
         const selectedPost = document.querySelector<HTMLLIElement>('#posts-list .selected');
@@ -87,10 +89,10 @@ const IndexPage = () => {
         }
     };
 
+    // 新しい投稿を作成するフォームの処理を行う関数です。
     const handlePostFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const content = (document.getElementById('post-content') as HTMLTextAreaElement).value;
-        // フォーム送信処理を実装
         try {
             const response = await fetch('/api/posts', {
                 method: 'POST',
@@ -100,8 +102,8 @@ const IndexPage = () => {
                 body: JSON.stringify({ content })
             });
             if (response.ok) {
-                await fetchPosts(); // 新しい投稿を取得して表示する
-                (document.getElementById('post-content') as HTMLTextAreaElement).value = ''; // フォームをクリアする
+                await fetchPosts();
+                (document.getElementById('post-content') as HTMLTextAreaElement).value = '';
             } else {
                 console.error('Failed to create post');
             }
@@ -110,9 +112,9 @@ const IndexPage = () => {
         }
     };
 
-    const handleCommentFormSubmit = async(event: React.FormEvent<HTMLFormElement>) => {
+    // コメントを追加するフォームの処理を行う関数です。
+    const handleCommentFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        // コメントフォームの送信処理を実装
         if (!selectedPostId) {
             alert('Please select a post to comment on.');
             return;
@@ -132,7 +134,7 @@ const IndexPage = () => {
             });
             if (response.ok) {
                 alert('Comment added successfully');
-                await fetchPosts(); // コメントが追加されたら投稿を再取得して更新
+                await fetchPosts();
             } else {
                 console.error('Failed to add comment');
             }
@@ -141,6 +143,13 @@ const IndexPage = () => {
         }
     };
 
+    // useEffect フックを使用して、コンポーネントがマウントされた時に実行される初期化処理を記述します。
+    useEffect(() => {
+        // ページが読み込まれた時に投稿を取得する処理を実行します。
+        fetchPosts();
+    }, []); // 依存リストが空のため、マウント時のみにこの処理が実行されます。
+
+    // コンポーネントの JSX を返します。
     return (
         <div>
             <h1>Login</h1>
