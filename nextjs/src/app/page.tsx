@@ -7,8 +7,17 @@ const IndexPage = () => {
 
     // ユーザーIDを取得する関数を定義します。
     const getUserId = async () => {
+        const username = (document.getElementById('username') as HTMLInputElement).value;
+        const password = (document.getElementById('password') as HTMLInputElement).value;
+
         try {
-            const response = await fetch('/getUserIdEndpoint');
+            const response = await fetch('http://localhost:3000/getUserIdEndpoint', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password })
+            });
             if (!response.ok) {
                 throw new Error('Failed to get user ID');
             }
@@ -27,7 +36,7 @@ const IndexPage = () => {
         const password = (document.getElementById('password') as HTMLInputElement).value;
 
         try {
-            const response = await fetch('/login', {
+            const response = await fetch('http://localhost:3000/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -89,59 +98,68 @@ const IndexPage = () => {
         }
     };
 
-    // 新しい投稿を作成するフォームの処理を行う関数です。
     const handlePostFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        const content = (document.getElementById('post-content') as HTMLTextAreaElement).value;
-        try {
-            const response = await fetch('/api/posts', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ content })
-            });
-            if (response.ok) {
-                await fetchPosts();
-                (document.getElementById('post-content') as HTMLTextAreaElement).value = '';
-            } else {
-                console.error('Failed to create post');
-            }
-        } catch (error) {
-            console.error('Error creating post:', error);
-        }
-    };
+      event.preventDefault();
+      const content = (document.getElementById('post-content') as HTMLTextAreaElement).value;
+  
+      try {
+          const response = await fetch('http://localhost:3000/api/posts', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ content })
+          });
+  
+          if (response.ok) {
+              await fetchPosts();
+              (document.getElementById('post-content') as HTMLTextAreaElement).value = '';
+              alert('Post created successfully');
+          } else {
+              throw new Error('Failed to create post');
+          }
+      } catch (error) {
+          console.error('Error creating post:', error);
+          alert('An error occurred while creating the post. Please try again later.');
+      }
+  };
+  
 
-    // コメントを追加するフォームの処理を行う関数です。
-    const handleCommentFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        if (!selectedPostId) {
-            alert('Please select a post to comment on.');
-            return;
+  // コメントを投稿する関数を定義します。
+  const handleCommentFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!selectedPostId) {
+        alert('Please select a post to comment on.');
+        return;
+    }
+    const content = (document.getElementById('comment-content') as HTMLTextAreaElement).value;
+    try {
+        const response = await fetch(`http://localhost:3000/api/posts/${selectedPostId}/comments`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                content,
+                user_id: await getUserId(), // ユーザーIDを取得してコメントに含める
+                post_id: selectedPostId
+            })
+        });
+        if (response.ok) {
+            alert('Comment added successfully');
+            // コメントが正常に投稿された後の処理として、投稿一覧を更新するための関数を呼び出します。
+            await fetchPosts();
+            // コメントのテキストエリアをクリアします。
+            (document.getElementById('comment-content') as HTMLTextAreaElement).value = '';
+        } else {
+            throw new Error('Failed to add comment');
         }
-        const content = (document.getElementById('comment-content') as HTMLTextAreaElement).value;
-        try {
-            const response = await fetch(`/api/posts/${selectedPostId}/comments`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ 
-                    user_id: await getUserId(),
-                    post_id: selectedPostId,
-                    content 
-                })
-            });
-            if (response.ok) {
-                alert('Comment added successfully');
-                await fetchPosts();
-            } else {
-                console.error('Failed to add comment');
-            }
-        } catch (error) {
-            console.error('Error adding comment:', error);
-        }
-    };
+    } catch (error) {
+        console.error('Error adding comment:', error);
+        alert('An error occurred while adding the comment. Please try again later.');
+    }
+  };
+
 
     // useEffect フックを使用して、コンポーネントがマウントされた時に実行される初期化処理を記述します。
     useEffect(() => {
